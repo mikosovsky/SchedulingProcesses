@@ -9,42 +9,90 @@ class ProcState(Enum):
 
 
 class Process:
-    __name: str
-    __process_list: list[(ProcState, int)]
-    __process_ans: str
-
-    def append_proc(self, new_proc):
-        state, duration = new_proc
-        if type(state) == ProcState and type(duration) == int:
-            self.__process_list.append(new_proc)
-
-    def append_ans(self, process_ans):
-        self.__process_ans = process_ans
-
-    def get_process_list(self):
-        return self.__process_list
+    def __init__(self, name, process_list):
+        self.name = name
+        self.process_list = process_list
+        self.process_ans = []
+        self.str_process_ans = ""
 
     def __str__(self):
-        if self.__process_ans == "":
-            return self.name + ": " + str([(k.value, l) for k, l in self.__process_list])
+        if self.str_process_ans == "":
+            return self.name + ": " + str([(k.value, l) for k, l in self.process_list])
         else:
-            return self.name + ": " + self.__process_ans
+            return self.name + ": " + self.str_process_ans
 
     def __len__(self):
         length = 0
-        for state, duration in self.__process_list:
+        for state, duration in self._process_list:
             length += duration
         return length
 
-    def __init__(self, name, process_list):
-        self.name = name
-        self.__process_list = process_list
-        self.__process_ans = ""
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        if type(name) != str:
+            raise TypeError("Wrong data type name should be str type.")
+        self._name = name
+
+    @property
+    def process_list(self):
+        return self._process_list
+
+    @process_list.setter
+    def process_list(self, process_list):
+        for proc_state, duration in process_list:
+            if type(proc_state) != ProcState or type(duration) != int:
+                raise TypeError("Wrong data types in process_list.")
+            elif duration < 1:
+                raise ValueError("Wrong value for duration of process.")
+        self._process_list = process_list
+
+    def append_process(self, process):
+        proc_state, duration = process
+        if type(proc_state) != ProcState or type(duration) != int:
+            raise TypeError("Wrong data types in process_list.")
+        elif duration < 1:
+            raise ValueError("Wrong value for duration of process.")
+        self._process_list.append(process)
+
+    @property
+    def str_process_ans(self):
+        return self._str_process_ans
+
+    @str_process_ans.setter
+    def str_process_ans(self, str_process_ans):
+        if type(str_process_ans) != str:
+            raise TypeError("Wrong data type in str_process_ans.")
+        self._str_process_ans = str_process_ans
+
+    def _translate_process_ans_to_str(self):
+        ans = ""
+        for proc_state in self._process_ans:
+            ans += proc_state.value
+        self.str_process_ans = ans
+
+    @property
+    def process_ans(self):
+        return self._process_ans
+
+    @process_ans.setter
+    def process_ans(self, process_ans):
+        for proc_state in process_ans:
+            if type(proc_state) != ProcState:
+                raise TypeError("Wrong data types in proc_ans.")
+            self._process_ans = process_ans
+            self._translate_process_ans_to_str()
+
+
+
 
 
 class ProcessList(list):
     def __init__(self, iterable):
-        super().__init__(str(item) for item in iterable)
+        super().__init__(item for item in iterable)
 
     def __setitem__(self, index, item):
         super().__setitem__(index, str(item))
@@ -71,5 +119,3 @@ class ProcessList(list):
                 else:
                     #TODO: Każdy inny proces musi porównać swój aktualny stan ze wszystkimi procesami nad nim, żeby zweryfikować czy może otrzymać status ProcState.Executed
                     pass
-
-
