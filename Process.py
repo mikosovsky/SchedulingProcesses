@@ -82,7 +82,7 @@ class Process:
     def process_ans(self, process_ans):
         for proc_state in process_ans:
             if type(proc_state) != ProcState:
-                raise TypeError("Wrong data types in proc_ans.")
+                raise TypeError("Wrong data types in process_ans.")
             self._process_ans = process_ans
             self._translate_process_ans_to_str()
 
