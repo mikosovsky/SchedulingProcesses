@@ -87,27 +87,24 @@ class Process:
             self._translate_process_ans_to_str()
 
 
-
-
-
 class ProcessList(list):
     def __init__(self, iterable):
         super().__init__(item for item in iterable)
 
     def __setitem__(self, index, item):
-        super().__setitem__(index, str(item))
+        super().__setitem__(index, item)
 
     def insert(self, index, item):
-        super().insert(index, str(item))
+        super().insert(index, item)
 
     def append(self, item):
-        super().append(str(item))
+        super().append(item)
 
     def extend(self, other):
         if isinstance(other, type(self)):
             super().extend(other)
         else:
-            super().extend(str(item) for item in other)
+            super().extend(item for item in other)
 
     def sort_processes(self):
         if len(self) > 0:
