@@ -14,6 +14,8 @@ class Process:
         self.process_list = process_list
         self.process_ans = []
         self.str_process_ans = ""
+        self._soft_process_list = self._prepare_soft_process_list()
+
 
     def __str__(self):
         if self.str_process_ans == "":
@@ -49,6 +51,7 @@ class Process:
             elif duration < 1:
                 raise ValueError("Wrong value for duration of process.")
         self._process_list = process_list
+        self._soft_process_list = self._prepare_soft_process_list()
 
     def append_process(self, process):
         proc_state, duration = process
@@ -57,6 +60,7 @@ class Process:
         elif duration < 1:
             raise ValueError("Wrong value for duration of process.")
         self._process_list.append(process)
+        self._soft_process_list = self._prepare_soft_process_list()
 
     @property
     def str_process_ans(self):
@@ -72,7 +76,7 @@ class Process:
         ans = ""
         for proc_state in self._process_ans:
             ans += proc_state.value
-        self.str_process_ans = ans
+        return ans
 
     @property
     def process_ans(self):
@@ -84,8 +88,18 @@ class Process:
             if type(proc_state) != ProcState:
                 raise TypeError("Wrong data types in process_ans.")
         self._process_ans = process_ans
-        self._translate_process_ans_to_str()
+        self._str_process_ans = self._translate_process_ans_to_str()
 
+    def _prepare_soft_process_list(self):
+        soft_process_list = []
+        for proc_state in self.process_list:
+            for _ in range(proc_state[1]):
+                soft_process_list.append(proc_state[0])
+        return soft_process_list
+
+    @property
+    def soft_process_list(self):
+        return self._soft_process_list
 
 class ProcessList(list):
     def __init__(self, iterable):
@@ -117,14 +131,63 @@ class ProcessList(list):
     def sort_processes(self):
         if len(self) > 0:
             for i in range(len(self)):
-                sorted_processes = []
-                sorted_processes.append(ProcState.New)
+                sorted_processes = [ProcState.New]
+                process_list = self[i].soft_process_list
                 if i == 0:
                     #TODO: Jeżeli proces jest pierwszy w liście to należy go przepisać 1:1
-                    for proc_state in self[i].process_list:
-                        for _ in range(proc_state[1]):
-                            sorted_processes.append(proc_state[0])
-                    self[i].process_ans = sorted_processes
+                    len_process = len(process_list)
+                    max_ready_el = process_list.count(ProcState.Executed)
+                    max_loop_range = len_process + max_ready_el
+                    right_j = 0
+                    for j in range(max_loop_range):
+                        if process_list[right_j] != ProcState.Executed:
+                            sorted_processes.append(process_list[right_j])
+                            right_j += 1
+                        elif process_list[right_j] == ProcState.Executed and ((sorted_processes[j] != ProcState.Executed and
+                        sorted_processes[j] != ProcState.Ready) and right_j != 0):
+                            sorted_processes.append(ProcState.Ready)
+                        else:
+                            sorted_processes.append(process_list[right_j])
+                            right_j += 1
+                        if right_j == len_process:
+                            break
                 else:
                     #TODO: Każdy inny proces musi porównać swój aktualny stan ze wszystkimi procesami nad nim, żeby zweryfikować czy może otrzymać status ProcState.Executed
-                    pass
+                    len_ans_list = self._get_lengths_of_ans_list()
+                    max_len = max(len_ans_list)
+                    len_process = sum([el[1] for el in self[i].process_list])
+                    max_ready_el = process_list.count(ProcState.Executed)
+                    max_loop_range = max_len + len_process + max_ready_el
+
+                    right_j = 0
+                    for j in range(max_loop_range):
+                        if process_list[right_j] != ProcState.Executed:
+                            sorted_processes.append(process_list[right_j])
+                            right_j += 1
+                        elif process_list[right_j] == ProcState.Executed and \
+                                ((sorted_processes[j] != ProcState.Executed and
+                                  sorted_processes[j] != ProcState.Ready) and right_j != 0):
+                            sorted_processes.append(ProcState.Ready)
+                        else:
+                            is_executed = False
+                            for k in range(i):
+                                if len(self[k].process_ans) > j+1 and self[k].process_ans[j+1] == ProcState.Executed:
+                                    is_executed = True
+                                    break
+
+                            if is_executed:
+                                sorted_processes.append(ProcState.Ready)
+                            else:
+                                sorted_processes.append(process_list[right_j])
+                                right_j += 1
+                        if right_j == len_process:
+                            break
+
+                self[i].process_ans = sorted_processes
+
+    def _get_lengths_of_ans_list(self):
+        len_ans_list = []
+        for process in self:
+            if len(process.process_ans) > 0:
+                len_ans_list.append(len(process.process_ans))
+        return len_ans_list
