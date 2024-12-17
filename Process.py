@@ -83,8 +83,8 @@ class Process:
         for proc_state in process_ans:
             if type(proc_state) != ProcState:
                 raise TypeError("Wrong data types in process_ans.")
-            self._process_ans = process_ans
-            self._translate_process_ans_to_str()
+        self._process_ans = process_ans
+        self._translate_process_ans_to_str()
 
 
 class ProcessList(list):
@@ -116,11 +116,15 @@ class ProcessList(list):
 
     def sort_processes(self):
         if len(self) > 0:
-            sorted_processes = []
             for i in range(len(self)):
+                sorted_processes = []
+                sorted_processes.append(ProcState.New)
                 if i == 0:
                     #TODO: Jeżeli proces jest pierwszy w liście to należy go przepisać 1:1
-                    pass
+                    for proc_state in self[i].process_list:
+                        for _ in range(proc_state[1]):
+                            sorted_processes.append(proc_state[0])
+                    self[i].process_ans = sorted_processes
                 else:
                     #TODO: Każdy inny proces musi porównać swój aktualny stan ze wszystkimi procesami nad nim, żeby zweryfikować czy może otrzymać status ProcState.Executed
                     pass
