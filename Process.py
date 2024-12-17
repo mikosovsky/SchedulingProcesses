@@ -89,22 +89,30 @@ class Process:
 
 class ProcessList(list):
     def __init__(self, iterable):
+        for item in iterable:
+            if type(item) != Process:
+                raise TypeError("Wrong data types in ProcessList.")
         super().__init__(item for item in iterable)
 
     def __setitem__(self, index, item):
+        if type(item) != Process:
+            raise("Wrong data type to set in ProcessList.")
         super().__setitem__(index, item)
 
     def insert(self, index, item):
+        if type(item) != Process:
+            raise("Wrong data type of item in insert function of ProcessList.")
         super().insert(index, item)
 
     def append(self, item):
+        if type(item) != Process:
+            raise("Wrong data type of item in append function of ProcessList")
         super().append(item)
 
     def extend(self, other):
-        if isinstance(other, type(self)):
-            super().extend(other)
-        else:
-            super().extend(item for item in other)
+        if type(other) != ProcessList:
+            raise("Wrong data type of list to extend ProcessList.")
+        super().extend(other)
 
     def sort_processes(self):
         if len(self) > 0:
